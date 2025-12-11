@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ const (
 	Yellow  = "\033[33m"
 	Cyan    = "\033[36m"
 	Reset   = "\033[0m"
-	Version = "NotiGo v0.1"
+	Version = "NotiGo v0.2"
 )
 
 func speedToBlock(speed, max float64) rune {
@@ -35,8 +34,8 @@ func speedToBlock(speed, max float64) rune {
 }
 
 func clearScreen() {
-	fmt.Print("\033[2J")
-	fmt.Print("\033[H")
+	fmt.Printf("\033[2J")
+	fmt.Printf("\033[H")
 }
 
 func printLine(termWidth int) {
@@ -92,23 +91,20 @@ func main() {
 	}
 
 	if *help {
-		fmt.Println("NotiGo flags")
-		fmt.Println("-b  manual beep")
-		fmt.Println("-v  show version")
-		fmt.Println("-r  refresh rate in seconds")
-		fmt.Println("-t  threshold in bytes")
-		fmt.Println("-h  help")
+		fmt.Printf("Usage:\n")
+		fmt.Printf("  NotiGo [option]\n\n")
+		fmt.Printf("Options:\n")
+		fmt.Printf("  No Option  run with TUI\n")
+		fmt.Printf("  -b         manual beep\n")
+		fmt.Printf("  -r         refresh rate in seconds\n")
+		fmt.Printf("  -t         threshold in bytes\n")
+		fmt.Printf("  -v         show version\n")
+		fmt.Printf("  -h         help\n")
 		return
 	}
 
 	refreshInterval := time.Duration(*refreshRate) * time.Second
 	threshold := *thresholdFlag
-
-	if *beepEnabled {
-		triggerBeep()
-		fmt.Printf("NotiGo Beep, finished!\n")
-		os.Exit(0)
-	}
 
 	if err := keyboard.Open(); err != nil {
 		panic(err)
@@ -133,10 +129,17 @@ func main() {
 	inputTicker := time.NewTicker(50 * time.Millisecond)
 	defer inputTicker.Stop()
 
-	renderUI(termWidth, autoDetect, "Loading...", Red, 0, "")
+	if !*beepEnabled {
+		renderUI(termWidth, autoDetect, "Loading...", Red, 0, "")
+	}
 
 loop:
 	for {
+		if *beepEnabled {
+			triggerBeep()
+			fmt.Printf("NotiGo Beep, finished!\n")
+			break loop
+		}
 		select {
 
 		case <-inputTicker.C:
@@ -215,6 +218,5 @@ loop:
 		}
 	}
 
-	fmt.Println("Exiting NotiGo.")
-	os.Exit(0)
+	fmt.Printf("Exiting NotiGo.\n")
 }
