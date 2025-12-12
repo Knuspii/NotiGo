@@ -1,4 +1,4 @@
-module NotiGo
+module github.com/knuspii/notigo
 
 go 1.25.0
 
